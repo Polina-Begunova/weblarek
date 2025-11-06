@@ -1,44 +1,59 @@
 import { IBuyer } from "../../types";
 
+// Тип для ошибок валидации
+type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
+
 export class Buyer {
-  protected _data: Partial<IBuyer> = {};
+  protected data: IBuyer = {
+    payment: "card", // значение по умолчанию
+    email: "",
+    phone: "",
+    address: "",
+  };
 
   constructor(initialData?: Partial<IBuyer>) {
-    this._data = initialData ? { ...initialData } : {};
+    if (initialData) {
+      this.data = { ...this.data, ...initialData };
+    }
   }
 
   // Сохранение данных покупателя
   setData(data: Partial<IBuyer>): void {
-    this._data = { ...this._data, ...data };
+    this.data = { ...this.data, ...data };
   }
 
   // Получение всех данных покупателя
-  getData(): Partial<IBuyer> {
-    return this._data;
+  getData(): IBuyer {
+    return { ...this.data };
   }
 
   // Очистка данных
   clear(): void {
-    this._data = {};
+    this.data = {
+      payment: "card",
+      email: "",
+      phone: "",
+      address: "",
+    };
   }
 
   // Валидация данных
-  validate(): Record<string, string> {
-    const errors: Record<string, string> = {};
+  validate(): TBuyerErrors {
+    const errors: TBuyerErrors = {};
 
-    if (!this._data.payment) {
+    if (!this.data.payment) {
       errors.payment = "Не выбран способ оплаты";
     }
 
-    if (!this._data.address || this._data.address.trim() === "") {
+    if (!this.data.address || this.data.address.trim() === "") {
       errors.address = "Введите адрес доставки";
     }
 
-    if (!this._data.email || this._data.email.trim() === "") {
+    if (!this.data.email || this.data.email.trim() === "") {
       errors.email = "Введите email";
     }
 
-    if (!this._data.phone || this._data.phone.trim() === "") {
+    if (!this.data.phone || this.data.phone.trim() === "") {
       errors.phone = "Введите телефон";
     }
 

@@ -2,6 +2,7 @@ import "./scss/styles.scss";
 import { Products } from "./components/models/Products";
 import { Basket } from "./components/models/Basket";
 import { Buyer } from "./components/models/Buyer";
+import { Api } from "./components/base/Api";
 import { LarekApi } from "./components/api/LarekApi";
 import { API_URL } from "./utils/constants";
 import { apiProducts } from "./utils/data";
@@ -9,9 +10,11 @@ import { apiProducts } from "./utils/data";
 // Инициализация моделей
 const productsModel = new Products();
 const basketModel = new Basket();
+const buyerModel = new Buyer(); // Создаем один экземпляр
 
 // Инициализация API
-const api = new LarekApi(API_URL);
+const baseApi = new Api(API_URL);
+const api = new LarekApi(baseApi); // Передаем готовый экземпляр
 
 // Тестирование моделей данных
 function testModels() {
@@ -41,28 +44,35 @@ function testModels() {
   basketModel.removeItem(apiProducts.items[0].id);
   console.log("После удаления товара:", basketModel.getItems());
 
-  // Тестирование покупателя с начальными данными
-  const buyerWithData = new Buyer({
+  // Тестирование покупателя
+  console.log("=== Тестирование покупателя ===");
+
+  // Начальное состояние (пустой покупатель)
+  console.log("Начальные данные покупателя:", buyerModel.getData());
+  console.log("Валидность начальных данных:", buyerModel.isValid());
+  console.log("Ошибки валидации начальных данных:", buyerModel.validate());
+
+  // Сохраняем один параметр (как в реальном приложении)
+  buyerModel.setData({
+    address: "Тестовый адрес доставки",
+  });
+  console.log("После установки адреса:", buyerModel.getData());
+  console.log("Ошибки валидации после адреса:", buyerModel.validate());
+  console.log("Валидность после адреса:", buyerModel.isValid());
+
+  // Добавляем остальные данные
+  buyerModel.setData({
     payment: "card",
-    address: "Тестовый адрес",
     email: "test@example.com",
     phone: "+79999999999",
   });
-  console.log("Данные покупателя (с инициализацией):", buyerWithData.getData());
-  console.log("Ошибки валидации:", buyerWithData.validate());
-  console.log("Данные валидны:", buyerWithData.isValid());
+  console.log("Полные данные покупателя:", buyerModel.getData());
+  console.log("Ошибки валидации полных данных:", buyerModel.validate());
+  console.log("Валидность полных данных:", buyerModel.isValid());
 
-  // Тестирование покупателя без начальных данных
-  const emptyBuyer = new Buyer();
-  console.log("Пустой покупатель:", emptyBuyer.getData());
-  emptyBuyer.setData({
-    payment: "cash",
-    address: "Новый адрес",
-  });
-  console.log("После добавления данных:", emptyBuyer.getData());
-
-  emptyBuyer.clear();
-  console.log("После очистки:", emptyBuyer.getData());
+  // Очистка данных
+  buyerModel.clear();
+  console.log("После очистки:", buyerModel.getData());
 }
 
 // Получение данных с сервера
@@ -72,6 +82,17 @@ async function loadProductsFromServer() {
     const products = await api.getProductList();
     productsModel.setItems(products);
     console.log("Товары с сервера:", productsModel.getItems());
+
+    // Проверка работы с товарами
+    if (products.length > 0) {
+      const firstProductId = products[0].id;
+      console.log(
+        "Товар по id с сервера:",
+        productsModel.getItem(firstProductId)
+      );
+      console.log("Категория первого товара:", products[0].category);
+      console.log("Цена первого товара:", products[0].price);
+    }
   } catch (error) {
     console.error("Ошибка загрузки товаров:", error);
   }

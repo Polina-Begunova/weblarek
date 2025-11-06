@@ -118,13 +118,22 @@ Presenter - презентер содержит основную логику п
 - address: string - адрес доставки
 
 ##### IOrder
-Интерфейс описывает данные заказа для отправки на сервер:
-- payment: TPayment - способ оплаты
-- email: string - email
-- phone: string - телефон
-- address: string - адрес
+Интерфейс описывает данные заказа для отправки на сервер. Наследует все поля от IBuyer и добавляет:
+- total: number - общая стоимость заказа
+- items: string[] - массив ID товаров в заказе
+
+Полная структура IOrder:
+- payment: TPayment - способ оплаты (унаследовано от IBuyer)
+- email: string - email покупателя (унаследовано от IBuyer)  
+- phone: string - телефон покупателя (унаследовано от IBuyer)
+- address: string - адрес доставки (унаследовано от IBuyer)
 - total: number - общая стоимость
 - items: string[] - массив ID товаров
+
+##### IProductListResponse
+Интерфейс описывает ответ сервера при получении списка товаров:
+- total: number - общее количество товаров
+- items: IProduct[] - массив товаров
 
 ###### Модели данных
 
