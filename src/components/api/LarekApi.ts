@@ -1,5 +1,5 @@
-import { Api } from "../base/Api"; // Импортируем конкретный класс Api
 import {
+  IApi,
   IProduct,
   IOrder,
   IOrderResult,
@@ -7,9 +7,9 @@ import {
 } from "../../types";
 
 export class LarekApi {
-  protected api: Api;
+  protected api: IApi;
 
-  constructor(api: Api) {
+  constructor(api: IApi) {
     this.api = api;
   }
 
