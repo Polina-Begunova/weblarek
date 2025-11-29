@@ -6,15 +6,15 @@ type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
 
 export class Buyer {
   protected data: IBuyer = {
-    payment: "card", // значение по умолчанию
+    payment: "card", //
     email: "",
     phone: "",
     address: "",
   };
 
-   protected events: EventEmitter;
+  protected events: EventEmitter;
 
-  constructor(events: EventEmitter,initialData?: Partial<IBuyer>) {
+  constructor(events: EventEmitter, initialData?: Partial<IBuyer>) {
     this.events = events;
     if (initialData) {
       this.data = { ...this.data, ...initialData };
@@ -24,7 +24,7 @@ export class Buyer {
   // Сохранение данных покупателя
   setData(data: Partial<IBuyer>): void {
     this.data = { ...this.data, ...data };
-    this.events.emit('buyer:changed', { data: this.data });
+    this.events.emit("buyer:changed", { data: this.data });
   }
 
   // Получение всех данных покупателя
@@ -40,7 +40,7 @@ export class Buyer {
       phone: "",
       address: "",
     };
-     this.events.emit('buyer:changed', { data: this.data });
+    this.events.emit("buyer:changed", { data: this.data });
   }
 
   // Валидация данных
@@ -89,6 +89,4 @@ export class Buyer {
   isOrderDataValid(): boolean {
     return Object.keys(this.validateOrderData()).length === 0;
   }
-
 }
-

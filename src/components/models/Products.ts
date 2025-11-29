@@ -7,13 +7,13 @@ export class Products {
   protected events: EventEmitter;
 
   constructor(events: EventEmitter) {
-        this.events = events;
-    }
+    this.events = events;
+  }
 
   // Сохранение массива товаров
   setItems(items: IProduct[]): void {
     this._items = items;
-    this.events.emit('products:changed', { items: this._items });
+    this.events.emit("products:changed", { items: this._items });
   }
 
   // Получение массива товаров
@@ -29,7 +29,7 @@ export class Products {
   // Сохранение выбранного товара
   setSelectedItem(item: IProduct): void {
     this._selectedItem = item;
-    this.events.emit('product:selected', { item: this._selectedItem });
+    this.events.emit("product:selected", { item: this._selectedItem });
   }
 
   // Получение выбранного товара

@@ -5,9 +5,9 @@ export class Basket {
   protected _items: IProduct[] = [];
   protected events: EventEmitter;
 
-    constructor(events: EventEmitter) {
-        this.events = events;
-         }
+  constructor(events: EventEmitter) {
+    this.events = events;
+  }
 
   // Получение товаров в корзине
   getItems(): IProduct[] {
@@ -17,19 +17,19 @@ export class Basket {
   // Добавление товара в корзину
   addItem(item: IProduct): void {
     this._items.push(item);
-    this.events.emit('basket:changed', { items: this._items });
+    this.events.emit("basket:changed", { items: this._items });
   }
 
   // Удаление товара из корзины
   removeItem(id: string): void {
     this._items = this._items.filter((item) => item.id !== id);
-    this.events.emit('basket:changed', { items: this._items });
+    this.events.emit("basket:changed", { items: this._items });
   }
 
   // Очистка корзины
   clear(): void {
     this._items = [];
-    this.events.emit('basket:changed', { items: this._items });
+    this.events.emit("basket:changed", { items: this._items });
   }
 
   // Получение общей стоимости

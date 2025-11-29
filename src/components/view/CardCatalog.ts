@@ -3,54 +3,53 @@ import { IProduct } from "../../types";
 import { CDN_URL } from "../../utils/constants";
 
 export interface ICardActions {
-    onClick: (event: MouseEvent) => void;
+  onClick: (event: MouseEvent) => void;
 }
 
 export class CardCatalog extends Card<IProduct> {
+  constructor(container: HTMLElement, actions?: ICardActions) {
+    super(container);
 
-    constructor(container: HTMLElement, actions?: ICardActions) {
-        super(container);
-        
-        if (actions?.onClick) {
-            if (this._button) {
-                this._button.addEventListener('click', actions.onClick);
-            } else {
-                container.addEventListener('click', actions.onClick);
-            }
-        }
+    if (actions?.onClick) {
+      if (this._button) {
+        this._button.addEventListener("click", actions.onClick);
+      } else {
+        container.addEventListener("click", actions.onClick);
+      }
     }
+  }
 
-    set id(value: string) {
-        this.container.dataset.id = value;
-    }
+  set id(value: string) {
+    this.container.dataset.id = value;
+  }
 
-    get id(): string {
-        return this.container.dataset.id || '';
-    }
+  get id(): string {
+    return this.container.dataset.id || "";
+  }
 
-    render(data?: Partial<IProduct>): HTMLElement {
+  render(data?: Partial<IProduct>): HTMLElement {
     super.render(data);
-    
+
     if (data) {
-        console.log(`Рендер карточки: ${data.title}`, {
-            image: data.image,
-            fullPath: data.image ? `${CDN_URL}${data.image}` : 'no image'
-        });
-        
-        this.setCategory(data.category || '');
-        this.setTitle(data.title || '');
-        
-        if (data.image) {
-            this.setImageSrc(data.image, data.title);
-        }
-        
-        this.setPrice(data.price ?? null);
-        
-        if (data.id) {
-            this.id = data.id;
-        }
+      console.log(`Рендер карточки: ${data.title}`, {
+        image: data.image,
+        fullPath: data.image ? `${CDN_URL}${data.image}` : "no image",
+      });
+
+      this.setCategory(data.category || "");
+      this.setTitle(data.title || "");
+
+      if (data.image) {
+        this.setImageSrc(data.image, data.title);
+      }
+
+      this.setPrice(data.price ?? null);
+
+      if (data.id) {
+        this.id = data.id;
+      }
     }
-    
+
     return this.container;
-}
+  }
 }
