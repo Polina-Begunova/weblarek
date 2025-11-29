@@ -199,3 +199,4 @@ Presenter - презентер содержит основную логику п
 Методы:
 - getProductList(): Promise<IProduct[]> - получает список товаров с сервера
 - createOrder(order: IOrder): Promise<IOrderResult> - отправляет заказ на сервер
+

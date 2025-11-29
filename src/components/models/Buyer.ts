@@ -1,4 +1,5 @@
 import { IBuyer } from "../../types";
+import { EventEmitter } from "../base/Events";
 
 // Тип для ошибок валидации
 type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
@@ -11,7 +12,10 @@ export class Buyer {
     address: "",
   };
 
-  constructor(initialData?: Partial<IBuyer>) {
+   protected events: EventEmitter;
+
+  constructor(events: EventEmitter,initialData?: Partial<IBuyer>) {
+    this.events = events;
     if (initialData) {
       this.data = { ...this.data, ...initialData };
     }
@@ -20,6 +24,7 @@ export class Buyer {
   // Сохранение данных покупателя
   setData(data: Partial<IBuyer>): void {
     this.data = { ...this.data, ...data };
+    this.events.emit('buyer:changed', { data: this.data });
   }
 
   // Получение всех данных покупателя
@@ -35,6 +40,7 @@ export class Buyer {
       phone: "",
       address: "",
     };
+     this.events.emit('buyer:changed', { data: this.data });
   }
 
   // Валидация данных
@@ -46,7 +52,7 @@ export class Buyer {
     }
 
     if (!this.data.address || this.data.address.trim() === "") {
-      errors.address = "Введите адрес доставки";
+      errors.address = "Необходимо указать адрес";
     }
 
     if (!this.data.email || this.data.email.trim() === "") {
@@ -64,4 +70,25 @@ export class Buyer {
   isValid(): boolean {
     return Object.keys(this.validate()).length === 0;
   }
+  // метод для валидации только данных заказа
+  validateOrderData(): TBuyerErrors {
+    const errors: TBuyerErrors = {};
+
+    if (!this.data.payment) {
+      errors.payment = "Не выбран способ оплаты";
+    }
+
+    if (!this.data.address || this.data.address.trim() === "") {
+      errors.address = "Необходимо указать адрес";
+    }
+
+    return errors;
+  }
+
+  // Проверка валидности только данных заказа
+  isOrderDataValid(): boolean {
+    return Object.keys(this.validateOrderData()).length === 0;
+  }
+
 }
+
