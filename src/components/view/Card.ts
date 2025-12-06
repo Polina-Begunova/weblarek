@@ -47,10 +47,7 @@ export abstract class Card<T> extends Component<T> {
     if (this._image) {
       // Формируем полный путь к изображению
       const fullImagePath = src.startsWith("http") ? src : `${CDN_URL}${src}`;
-      this._image.src = fullImagePath;
-      if (alt) {
-        this._image.alt = alt;
-      }
+      this.setImage(this._image, fullImagePath, alt);
 
       // Обработчик ошибок загрузки
       this._image.onerror = () => {

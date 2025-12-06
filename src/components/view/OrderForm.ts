@@ -12,15 +12,13 @@ export class OrderForm extends Form<IBuyer> {
   protected _cardButton: HTMLButtonElement;
   protected _cashButton: HTMLButtonElement;
   protected _paymentButtons: HTMLButtonElement[];
+  protected _onInputChange?: (field: keyof IBuyer, value: string) => void;
+  protected _currentPayment: "card" | "cash" = "card";
 
   constructor(container: HTMLElement, actions?: IOrderActions) {
-    super(container);
+    super(container, actions?.onSubmit);
 
-    this._errors = ensureElement<HTMLElement>(".form__errors", container);
-    this._submit = ensureElement<HTMLButtonElement>(
-      'button[type="submit"]',
-      container
-    );
+    this._onInputChange = actions?.onInputChange;
 
     this._addressInput = ensureElement<HTMLInputElement>(
       'input[name="address"]',
@@ -40,60 +38,39 @@ export class OrderForm extends Form<IBuyer> {
     // Обработчики для выбора способа оплаты
     this._cardButton.addEventListener("click", () => {
       this.selectPayment("card");
-      actions?.onInputChange("payment", "card");
+      this._onInputChange?.("payment", "card");
       this.validateForm();
     });
 
     this._cashButton.addEventListener("click", () => {
       this.selectPayment("cash");
-      actions?.onInputChange("payment", "cash");
+      this._onInputChange?.("payment", "cash");
       this.validateForm();
     });
 
     // Обработчик для адреса
     this._addressInput.addEventListener("input", () => {
-      actions?.onInputChange("address", this._addressInput.value);
+      this._onInputChange?.("address", this._addressInput.value);
       this.validateForm();
     });
-
-    // Обработчик отправки формы
-    if (actions?.onSubmit) {
-      container.addEventListener("submit", (e: Event) => {
-        e.preventDefault();
-        const formData = this.getFormData();
-        actions.onSubmit(formData);
-      });
-    }
-    setTimeout(() => {
-      this.validateForm();
-    }, 0);
+    this.selectPayment("card");
   }
   protected validateForm(): boolean {
     const addressFilled = this._addressInput.value.trim() !== "";
-    const paymentSelected =
-      this._cardButton.classList.contains("button_alt-active") ||
-      this._cashButton.classList.contains("button_alt-active");
-
-    // Валидация и отображение ошибок
-    let errors: Record<string, string> = {};
-
-    if (!paymentSelected) {
-      errors.payment = "Не выбран способ оплаты";
-    }
-
-    if (!addressFilled) {
-      errors.address = "Необходимо указать адрес";
-    }
-
-    if (Object.keys(errors).length > 0) {
-      this.setErrors(errors);
-    } else {
-      this.clearErrors();
-    }
+    const paymentSelected = this._currentPayment !== null;
 
     const isValid = addressFilled && paymentSelected;
     this.setValid(isValid);
     return isValid;
+  }
+
+  protected getFormData(): IBuyer {
+    return {
+      payment: this._currentPayment,
+      address: this._addressInput.value,
+      email: "",
+      phone: "",
+    };
   }
 
   private selectPayment(method: "card" | "cash") {
@@ -108,31 +85,15 @@ export class OrderForm extends Form<IBuyer> {
     }
   }
 
-  private getFormData(): IBuyer {
-    return {
-      payment: this._cardButton.classList.contains("button_alt-active")
-        ? "card"
-        : "cash",
-      address: this._addressInput.value,
-      email: "",
-      phone: "",
-    };
-  }
-
-  set address(value: string) {
-    this._addressInput.value = value;
-  }
-
-  set payment(value: "card" | "cash") {
-    this.selectPayment(value);
-  }
-
   render(data?: Partial<IBuyer>): HTMLElement {
     super.render(data);
-
     if (data) {
-      if (data.address) this.address = data.address;
-      if (data.payment) this.payment = data.payment;
+      if (data.address !== undefined) {
+        this._addressInput.value = data.address;
+      }
+      if (data.payment !== undefined) {
+        this.selectPayment(data.payment);
+      }
     }
     this.validateForm();
     return this.container;

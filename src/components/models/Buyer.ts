@@ -24,12 +24,13 @@ export class Buyer {
   // Сохранение данных покупателя
   setData(data: Partial<IBuyer>): void {
     this.data = { ...this.data, ...data };
-    this.events.emit("buyer:changed", { data: this.data });
+    this.events.emit<{ data: IBuyer }>("buyer:changed", { data: this.data });
   }
 
   // Получение всех данных покупателя
   getData(): IBuyer {
     return { ...this.data };
+    this.events.emit("buyer:changed", { data: this.data });
   }
 
   // Очистка данных
@@ -69,24 +70,5 @@ export class Buyer {
   // Проверка валидности всех данных
   isValid(): boolean {
     return Object.keys(this.validate()).length === 0;
-  }
-  // метод для валидации только данных заказа
-  validateOrderData(): TBuyerErrors {
-    const errors: TBuyerErrors = {};
-
-    if (!this.data.payment) {
-      errors.payment = "Не выбран способ оплаты";
-    }
-
-    if (!this.data.address || this.data.address.trim() === "") {
-      errors.address = "Необходимо указать адрес";
-    }
-
-    return errors;
-  }
-
-  // Проверка валидности только данных заказа
-  isOrderDataValid(): boolean {
-    return Object.keys(this.validateOrderData()).length === 0;
   }
 }

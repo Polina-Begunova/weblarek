@@ -22,14 +22,6 @@ export class CardPreview extends Card<IProduct> {
     }
   }
 
-  set id(value: string) {
-    this.container.dataset.id = value;
-  }
-
-  get id(): string {
-    return this.container.dataset.id || "";
-  }
-
   render(data?: Partial<IProduct>): HTMLElement {
     super.render(data);
 
@@ -49,9 +41,6 @@ export class CardPreview extends Card<IProduct> {
 
       this.setPrice(data.price ?? null);
 
-      if (data.id) {
-        this.id = data.id;
-      }
       if (data.price === null) {
         this.setButton("Недоступно", true);
       }

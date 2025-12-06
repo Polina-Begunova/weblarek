@@ -3,12 +3,13 @@ import { IProduct } from "../../types";
 import { ensureElement } from "../../utils/utils";
 
 export interface ICardActions {
-  onClick: (event: MouseEvent) => void;
+  onClick: (event: MouseEvent, id: string) => void;
 }
 
 export class CardBasket extends Card<IProduct> {
   protected _index: HTMLElement;
   protected _deleteButton: HTMLButtonElement;
+  protected _currentId?: string;
 
   constructor(container: HTMLElement, actions?: ICardActions) {
     super(container);
@@ -23,21 +24,15 @@ export class CardBasket extends Card<IProduct> {
       this._deleteButton.addEventListener("click", (event) => {
         event.preventDefault();
         event.stopPropagation();
-        actions.onClick(event);
+        if (this._currentId) {
+          actions.onClick(event, this._currentId);
+        }
       });
     }
   }
 
   set index(value: number) {
     this.setText(this._index, value.toString());
-  }
-
-  set id(value: string) {
-    this.container.dataset.id = value;
-  }
-
-  get id(): string {
-    return this.container.dataset.id || "";
   }
 
   render(data?: Partial<IProduct> & { index?: number }): HTMLElement {
@@ -52,7 +47,7 @@ export class CardBasket extends Card<IProduct> {
       }
 
       if (data.id) {
-        this.id = data.id;
+        this._currentId = data.id;
       }
     }
 

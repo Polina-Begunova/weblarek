@@ -39,6 +39,13 @@ export class Modal extends Component<IModalData> {
     this._content.innerHTML = "";
     document.removeEventListener("keydown", this._handleEscape);
   }
+  public isOpen(): boolean {
+    return this.container.classList.contains("modal_active");
+  }
+
+  public getContent(): HTMLElement | null {
+    return this._content.firstElementChild as HTMLElement;
+  }
 
   private _handleEscape(evt: KeyboardEvent) {
     if (evt.key === "Escape") {

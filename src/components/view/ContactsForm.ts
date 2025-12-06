@@ -11,25 +11,12 @@ export class ContactsForm extends Form<IBuyer> {
   protected _emailInput: HTMLInputElement;
   protected _phoneInput: HTMLInputElement;
   protected _currentData: Partial<IBuyer> = {};
+  protected _onInputChange?: (field: keyof IBuyer, value: string) => void;
 
   constructor(container: HTMLElement, actions?: IContactsActions) {
-    super(container);
+    super(container, actions?.onSubmit);
 
-    if (actions?.onInputChange) {
-      const originalOnInputChange = actions.onInputChange;
-      actions.onInputChange = (field: keyof IBuyer, value: string) => {
-        if (field === "payment") {
-          if (value === "card" || value === "cash") {
-            this._currentData[field] = value;
-          }
-        } else {
-          this._currentData[field] = value;
-        }
-
-        originalOnInputChange(field, value);
-        this.validateForm();
-      };
-    }
+    this._onInputChange = actions?.onInputChange;
 
     this._emailInput = ensureElement<HTMLInputElement>(
       'input[name="email"]',
@@ -43,54 +30,27 @@ export class ContactsForm extends Form<IBuyer> {
     this._emailInput.addEventListener("input", () => {
       const value = this._emailInput.value;
       this._currentData.email = value;
-      actions?.onInputChange("email", value);
+      this._onInputChange?.("email", value);
       this.validateForm();
     });
 
     this._phoneInput.addEventListener("input", () => {
       const value = this._phoneInput.value;
       this._currentData.phone = value;
-      actions?.onInputChange("phone", value);
+      this._onInputChange?.("phone", value);
       this.validateForm();
     });
-
-    if (actions?.onSubmit) {
-      this.container.addEventListener("submit", (e: Event) => {
-        e.preventDefault();
-        if (this.validateForm()) {
-          const formData = this.getFormData();
-          actions.onSubmit(formData);
-        }
-      });
-    }
   }
-
   protected validateForm(): boolean {
     const emailFilled = this._emailInput.value.trim() !== "";
     const phoneFilled = this._phoneInput.value.trim() !== "";
-
-    let errors: Record<string, string> = {};
-
-    if (!emailFilled) {
-      errors.email = "Введите email";
-    }
-
-    if (!phoneFilled) {
-      errors.phone = "Введите телефон";
-    }
-
-    if (Object.keys(errors).length > 0) {
-      this.setErrors(errors);
-    } else {
-      this.clearErrors();
-    }
 
     const isValid = emailFilled && phoneFilled;
     this.setValid(isValid);
     return isValid;
   }
 
-  private getFormData(): IBuyer {
+  protected getFormData(): IBuyer {
     return {
       payment: this._currentData.payment || "card",
       address: this._currentData.address || "",
@@ -125,10 +85,20 @@ export class ContactsForm extends Form<IBuyer> {
     if (data) {
       this._currentData = { ...this._currentData, ...data };
 
-      if (data.email) this.email = data.email;
-      if (data.phone) this.phone = data.phone;
-      if (data.payment) this.payment = data.payment;
-      if (data.address) this.address = data.address;
+      if (data.email !== undefined) {
+        this._emailInput.value = data.email;
+        this._currentData.email = data.email;
+      }
+      if (data.phone !== undefined) {
+        this._phoneInput.value = data.phone;
+        this._currentData.phone = data.phone;
+      }
+      if (data.payment !== undefined) {
+        this._currentData.payment = data.payment;
+      }
+      if (data.address !== undefined) {
+        this._currentData.address = data.address;
+      }
     }
 
     this.validateForm();
