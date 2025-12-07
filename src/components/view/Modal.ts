@@ -1,5 +1,6 @@
 import { Component } from "../base/Component";
 import { ensureElement } from "../../utils/utils";
+import { Page } from "./Page";
 
 interface IModalData {
   content: HTMLElement;
@@ -9,7 +10,7 @@ export class Modal extends Component<IModalData> {
   protected _closeButton: HTMLButtonElement;
   protected _content: HTMLElement;
 
-  constructor(container: HTMLElement) {
+  constructor(container: HTMLElement, private page?: Page) {
     super(container);
 
     this._closeButton = ensureElement<HTMLButtonElement>(
@@ -32,13 +33,20 @@ export class Modal extends Component<IModalData> {
   open() {
     this.container.classList.add("modal_active");
     document.addEventListener("keydown", this._handleEscape);
+    if (this.page) {
+      this.page.lockScroll(true);
+    }
   }
 
   close() {
     this.container.classList.remove("modal_active");
     this._content.innerHTML = "";
     document.removeEventListener("keydown", this._handleEscape);
+    if (this.page) {
+      this.page.lockScroll(false);
+    }
   }
+
   public isOpen(): boolean {
     return this.container.classList.contains("modal_active");
   }

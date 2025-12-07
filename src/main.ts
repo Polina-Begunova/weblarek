@@ -15,6 +15,8 @@ import { ContactsForm } from "./components/view/ContactsForm";
 import { Basket as BasketView } from "./components/view/Basket";
 import { Success } from "./components/view/Success";
 import { Modal } from "./components/view/Modal";
+import { ErrorMessage } from "./components/view/ErrorMessage";
+import { Page } from "./components/view/Page";
 
 import { cloneTemplate, ensureElement } from "./utils/utils";
 import { IProduct, IOrder, IBuyer } from "./types";
@@ -33,37 +35,6 @@ enum AppEvents {
   ModalClose = "modal:close",
 }
 
-class ErrorMessage {
-  constructor(private container: HTMLElement) {}
-
-  show(message: string, onClose?: () => void): HTMLElement {
-    const errorElement = document.createElement("div");
-    errorElement.className = "error";
-    errorElement.innerHTML = `
-      <div class="error__content">
-        <h2 class="error__title">Ошибка оформления заказа</h2>
-        <p class="error__text">${message}</p>
-        <button class="button error__button">Закрыть</button>
-      </div>
-    `;
-
-    const closeButton = errorElement.querySelector(".error__button");
-    if (closeButton && onClose) {
-      closeButton.addEventListener("click", onClose);
-    }
-
-    this.container.appendChild(errorElement);
-    return errorElement;
-  }
-
-  clear(): void {
-    const errorElement = this.container.querySelector(".error");
-    if (errorElement) {
-      errorElement.remove();
-    }
-  }
-}
-
 // ========== ИНИЦИАЛИЗАЦИЯ ==========
 const events = new EventEmitter();
 const productsModel = new Products(events);
@@ -74,10 +45,9 @@ const baseApi = new Api(API_URL);
 const api = new LarekApi(baseApi);
 
 // DOM элементы
-const gallery = ensureElement<HTMLElement>(".gallery");
-const basketCounter = ensureElement<HTMLElement>(".header__basket-counter");
-const basketButton = ensureElement<HTMLButtonElement>(".header__basket");
 const modalContainer = ensureElement<HTMLElement>("#modal-container");
+const pageContainer = ensureElement<HTMLElement>(".page");
+let page: Page;
 
 // Шаблоны
 const cardCatalogTemplate = ensureElement<HTMLTemplateElement>("#card-catalog");
@@ -87,11 +57,17 @@ const basketTemplate = ensureElement<HTMLTemplateElement>("#basket");
 const orderTemplate = ensureElement<HTMLTemplateElement>("#order");
 const contactsTemplate = ensureElement<HTMLTemplateElement>("#contacts");
 const successTemplate = ensureElement<HTMLTemplateElement>("#success");
+const errorTemplate = ensureElement<HTMLTemplateElement>("#error");
 
-// ✅ СОЗДАЕМ КОМПОНЕНТЫ ОДИН РАЗ (не в функциях)
-const modal = new Modal(modalContainer);
-const errorMessage = new ErrorMessage(modalContainer);
+// СОЗДАЕМ КОМПОНЕНТЫ ОДИН РАЗ
+page = new Page(pageContainer, {
+  onBasketClick: () => {
+    showBasket();
+  },
+});
 
+let modal: Modal;
+let errorMessage: ErrorMessage;
 let orderForm: OrderForm;
 let contactsForm: ContactsForm;
 let successView: Success;
@@ -99,6 +75,14 @@ let basketView: BasketView;
 
 // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ФОРМАМИ ==========
 function initForms() {
+  modal = new Modal(modalContainer, page);
+
+  errorMessage = new ErrorMessage(cloneTemplate(errorTemplate), {
+    onClick: () => {
+      modal.close();
+    },
+  });
+
   orderForm = new OrderForm(cloneTemplate(orderTemplate), {
     onSubmit: (data: IBuyer) => {
       buyerModel.setData(data);
@@ -242,7 +226,7 @@ events.on(AppEvents.ProductsChanged, (data: { items: IProduct[] }) => {
       image: product.image,
     });
   });
-  gallery.replaceChildren(...cards);
+  page.cards = cards;
 });
 
 // Показ деталей товара (теперь срабатывает из модели)
@@ -276,7 +260,7 @@ events.on(AppEvents.ProductSelected, (data: { item: IProduct }) => {
 
 // Обновление счетчика корзины
 events.on(AppEvents.BasketChanged, () => {
-  basketCounter.textContent = basketModel.getCount().toString();
+  page.basketCounter = basketModel.getCount();
 
   // Если корзина открыта - обновляем её содержимое
   if (modal.isOpen()) {
@@ -295,11 +279,6 @@ events.on(AppEvents.BuyerChanged, () => {
 
   orderForm.setValid(orderValid);
   contactsForm.setValid(contactsValid);
-});
-
-// Открытие корзины по кнопке в хедере
-basketButton.addEventListener("click", () => {
-  showBasket();
 });
 
 // ========== ОСНОВНЫЕ ФУНКЦИИ ==========
@@ -326,13 +305,13 @@ async function submitOrder() {
     buyerModel.clear();
   } catch (error) {
     console.error("Order error:", error);
-    errorMessage.show(
-      "Произошла ошибка при оформлении заказа. Попробуйте еще раз",
-      () => {
-        modal.close();
-        errorMessage.clear();
-      }
-    );
+    errorMessage.render({
+      title: "Ошибка оформления заказа",
+      text: "Произошла ошибка при оформлении заказа. Попробуйте еще раз",
+      buttonText: "Закрыть",
+    });
+    modal.render({ content: errorMessage.container });
+    modal.open();
   }
 }
 
@@ -342,12 +321,13 @@ async function loadProducts() {
     productsModel.setItems(products);
   } catch (error) {
     console.error("Ошибка загрузки товаров:", error);
-    errorMessage.show(
-      "Не удалось загрузить товары. Пожалуйста, обновите страницу",
-      () => {
-        errorMessage.clear();
-      }
-    );
+    errorMessage.render({
+      title: "Ошибка загрузки",
+      text: "Не удалось загрузить товары. Пожалуйста, обновите страницу",
+      buttonText: "Закрыть",
+    });
+    modal.render({ content: errorMessage.container });
+    modal.open();
   }
 }
 
